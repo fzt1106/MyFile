@@ -1,0 +1,157 @@
+# 并查集
+
+## 并查集简介
+
+### 作用
+
+并查集是用来**管理元素分组情况**的数据结构，维护的是**集合**，可以进行以下操作
+
+1. **查询元素a和元素b是否在同一集合**
+2. **合并元素a和元素b所在集合**
+
+### 结构
+
+以**树形结构**实现，每一个集合对应一个棵树。
+
+每个节点的双亲与孩子无需关注，只需关注一个集合对应一棵树即可
+
+由于是以树为结构，因此可以用来讨论**连通性**，此外并查集可以**维护关系：朋友关系、敌对关系（种类并查集运用较多）**
+
+## 并查集实现
+
+### 初始化
+
+n个节点表示n个元素，最开始无边，每个节点的祖宗为自身
+
+### 合并
+
+合并两集合：一棵树的根连向另一棵树的根
+
+### 查询
+
+为查询两个节点是否为同一组，只需沿树向上走，查询该树的根。
+
+根相同->树相同->在同一集合
+
+### 避免树的退化
+
+1. 对于每棵树，记录树的高度rank
+2. 合并时，若rank不同，则从rank小的向rank大的连边
+3. 路径压缩：将查询路径上所有节点都直接连向根
+
+## 并查集模板
+
+### 朴素并查集
+
+```c++
+int par[N];//存储每个节点的祖宗节点
+
+
+//初始化：假定节点编号为1~n
+void init(int n){
+    for(int i=1;i<=n;i++)par[i]=i;
+}
+
+//查询：返回x的祖宗节点
+int find(int x){
+    if(par[x]!=x)par[x]=find(par[x]);//若x不是祖宗，继续向上找并进行路径压缩
+    return par[x];//返回祖宗节点
+}
+
+//合并a和b所在集合
+void unite(int a,int b){
+    par[find(a)]=find(b);
+}
+```
+
+### 维护size的并查集
+
+```c++
+int par[N],size[N];
+//par[N]存储每个节点的祖宗节点
+//size[N]只有祖宗节点又意义，表示祖宗节点所在集合大小
+
+//初始化：假定节点编号为1~n
+void init(){
+    for(int i=1;i<=n;i++){
+        par[i]=i;
+        size[i]=1;//集合大小初始为1
+    }
+}
+
+//查询：返回x的祖宗节点
+int find(int x){
+    if(par[x]!=x)par[x]=find(par[x]);//若x不是祖宗，继续向上找并进行路径压缩
+    return par[x];//返回祖宗节点
+}
+
+//合并a和b所在集合
+void unite(int a,int b){
+    size[find(b)]+=size[find(a)];//find(a)连到find(b)上，在连之前更新find(b)所在集合大小
+    par[find(a)]=find(b);
+}
+```
+
+### 维护到祖宗节点距离的并查集
+
+```c++
+int par[N],dis[N];
+//par[N]存储每个节点的祖宗节点
+//dis[N]存储x到par[x]的距离
+
+//初始化：假定节点编号为1~n
+void init(){
+    for(int i=1;i<=n;i++){
+        par[i]=i;
+        dis[i]=0;//初始到par[i]的距离为0
+    }
+}
+
+//查询：返回x的祖宗节点
+int find(int x){
+    if(par[x]!=x){
+        int u=find(par[x]);
+        dis[x]+=dis[par[x]];//dis[x]：x->旧祖宗的距离，dis[par[x]]：旧祖宗->新祖宗的距离=>dis[x]+dis[par[x]]：x->新祖宗的距离
+        par[x]=u;//路径压缩
+    }
+    return par[x];//返回祖宗节点
+}
+
+//合并a和b所在集合
+void unite(int a,int b){
+    int u=find(a),v=find(b);
+    par[u]=v;
+    d[u]=distance;//根据具体问题，初始化u的偏移量
+}
+```
+
+### 路径压缩+按秩合并
+
+```c++
+int par[N],rank[N];
+
+void init(){
+    for(int i=1;i<=n;i++){
+        par[i]=i;
+        rank[i]=0;
+    }
+}
+
+int find(int x){
+    if(par[x]==x)return x;
+    return par[x]=find(par[x]);
+}
+
+//按秩合并
+void unite(int a,int b){
+    int a=find(a);
+    int b=find(b);
+    if(a==b)return;
+    if(rank[a]<rank[b])par[a]=b;
+    else {
+        par[b]=a;
+        if(rank[a]==rank[b])rank[a]++;
+    }
+}
+```
+

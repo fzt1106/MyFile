@@ -1,0 +1,79 @@
+# 逆元
+
+## 逆元
+
+### 概念
+
+线性同余方程$ax\equiv 1(\mod b)$，则称$x$为$a \mod b$的逆元，记作$a^{-1}$
+
+### 作用
+
+求$(x/y)\% z$时，由于**除法无非进行模运算**，因此需要将**除法转化为乘法**
+
+通过求得$y\mod z$的逆元$c$，可以得到$(x/y)\%z=(x*c)\%z$
+
+## 逆元的求解
+
+### 扩展欧几里得法
+
+$a模b的逆元 \Leftrightarrow ax=1(\mod b) \Leftrightarrow ax+by=1$
+
+**问题转换为扩展欧几里得算法扩展3**
+
+==当$gcd(a,b)= =1$时，方程才有可行解==
+
+```c++
+int a,b,x,y;
+
+void Exgcd(int a,int b,int &x,int &y){
+    if(b==0){
+        x=1;
+        y=0;
+        return;
+    }
+    Exgcd(b,a%b,x,y);
+    int temp=x;// temp=x2
+    x=y;// x1=y2
+    y= temp-(a/b)*y;// y1=x2-(a/b)*y2
+}
+
+//当gcd(a,b)==1时，方程才有可行解
+ll Inv(ll a,ll b){
+    ll x,y;
+    Exgcd(a,b,x,y);
+    return (x%b+n)%b;
+}
+```
+
+### 快速幂法（费马小定理）
+
+> 费马小定理：若$p$为素数，$\gcd(a,p)=1$，则$a^{p-1}=1(\mod p)$
+>
+> 另一个形式：对于任意整数a,有$a^p=a(\mod p)$
+
+求$ax\equiv 1(\mod b)$时，==当b为质素时==：
+
++ 根据费马小定理：$a^{b-1}=1(\mod b)$
++ 又有$a*a^{b-2}=a^{b-1}$
++ 于是$x=a^{b-2}(\mod b)$
+
+```c++
+long long fastPower(long long base,long long power,long long mod){
+	long long result=1;
+    base%=mod;//防止最开始base*base时溢出
+	while(power>0){
+		if(power&1){//指数为奇数时特判，位运算判断奇数
+			result=result*base%mod;//记录下指数为奇数时的底数,并应用乘法模运算 
+		}
+		power>>=1;//指数减半，位运算来除2
+		base=base*base%mod;//底数平方,并应用指数模运算 
+	}
+	return result;
+}
+
+//当b为质素时，方程才有可行解
+ll Inv(ll a, ll b) {
+    return fastPower(a, b-2, b);
+}
+```
+

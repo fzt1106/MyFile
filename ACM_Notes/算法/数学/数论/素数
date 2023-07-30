@@ -1,0 +1,153 @@
+# 素数
+
+## 素数的判断
+
+### 常规判断O($\sqrt{n}$)
+
+因为$n=x*y$时，$\boldsymbol{min(x,y)<=\sqrt{n}}$，只需检查2到$\sqrt{2}$就行了
+
+**1是例外（1不是素数），留到最后return特判**
+
+```c++
+bool is_prime(int n){
+    for(int i=2;i*i<=n;i++){
+        if(n%i==0)return false;
+    }
+    return n!=1;//1是例外
+}
+```
+
+### 素数的判断优化版本(比上面快2、3倍)
+
+规律：**>=5的素数一定在6的倍数两侧，在6的倍数两侧的数不一定是素数**，但可以==以6个单位快进==，利用判断6的倍数两侧的数判断此数是不是素数
+
+```c++
+bool is_prime(int n){
+    if(n==2||n==3)return true;//该算法只能判断>=5的数是否为素数，2、3需要特判
+    if(n%6!=1&&n%6!=5)return false;//不在6的倍数两侧的数一定不是素数
+    for(int i=5;i*i<=n;i+=6){//在6倍数两侧的数也不一定是素数，6个单位快进，利用6的倍数两侧的数来判断
+        if(n%i==0||n%(i+2)==0)return false;//若能被6的倍数两侧的数整除，则不是素数
+    }
+    return n!=1;//1需要特判
+}
+```
+
+==1e5内有9592个素数，2e5内的有17984个素数==
+
+==1e5内两质数间最大距离大约为100==
+
+## 素数筛法
+
+### 埃氏筛法O(nloglogn)==可以直接用线性筛==
+
+算法思路：依次把**素数i的倍数**都划去，表中剩余的最小数字是m时，m就是素数，因为它不能被更小的数整除
+
+```c++
+int prime[maxn];
+bool is_prime[maxn];
+
+int sieve(int n){
+    int p=0;
+    memset(is_prime,true,sizeof(is_prime));
+    is_prime[0]=is_prime[1]=false;
+    for(int i=2;i<=n;i++){
+        if(is_prime[i]){
+            prime[p++]=i;
+            for(int j=i*i;j<=n;j++){ // 因为从 2 到 i - 1 的倍数我们之前筛过了，这里直接从 i*i
+                is_prime[j]=false;
+            }
+        }
+    }
+}
+```
+
+### 线性筛（欧拉筛）O(n)
+
+由来：对于埃氏筛法，对于其优化二的部分，```x*i (x<i)```的非素数被==x的最小质因数==筛选过了，但是若**x的倍素仍是素数**，那么```x*i (x<i)```又会倍==重复筛选==，这是多余的，欧拉筛就是把这部分多余的操作去掉
+
+算法思想：==每一个数只被它的最小质因数筛过一次，筛法求素数的同时也得到了每个数的最小质因子。==
+
+因为prime[]中的素数是递增的，所以如果```i%prime[j]!=0```代表i的最小质因数还没有找到，即i的最小质因数大于prime[j]，也就是说prime[j]是i*prime[j]的最小质因数，于是```i*prime```被它的最小质因数筛掉了
+
+如果当```i%prime[j]==0```时，代表i的最小质因数就是```prime[j]```，那么```i*prime[j+k](k>0)```这个合数的最小质因数不是```prime[j+k](k>0)```而是```prime[j]```。所以```i*prime[j+k](k>0)```应该是被**另一个for循环中的I(此I>i)**```i*prime[j+k]=I*prime[j]```的最小质因数```prime[j]```筛掉而不是**此for循环的**后续的```prime[j+k]```。于是在此处break。
+
+```c++
+int prime[maxn], cnt;
+bool vis[maxn];
+
+void init()
+{
+    vis[0] = vis[1] = 1;
+    for (int i = 2; i <= n; i++)
+    {
+        if (!vis[i])
+            prime[cnt++] = i;
+        for (int j = 0; i * prime[j] <= n && j < cnt; j++)
+        {
+            vis[i * prime[j]] = 1;
+            if (i % prime[j] == 0)
+                break;
+        }
+    }
+}
+```
+
+### 区间筛法
+
+> 问题描述：
+>
+> <img src="https://img-blog.csdnimg.cn/20210207113900350.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5ODM4NjA3,size_16,color_FFFFFF,t_70" alt="img" style="zoom:50%;" />
+
+b以内的合数的最小质因数一定不超过$\sqrt{b}$。如果有$\sqrt{b}$以内的素数表的话，就可以把**埃氏筛法运用到(a,b)上**了。
+
+也就是说，先分别做好[2,$\sqrt{b}$)的表和[a,b)的表，然后**从[2,$\sqrt{b}$)的表中筛得素数的同时，也将其倍数从[a,b)的表中划去**，最后剩下的就是区间[a,b)内的素数了
+
+a、b非常大，而b-a只有1e6，将区间[a,b)转化为区间[0,b-a)
+
+```c++
+typedef long long ll;
+bool is_prime[maxn];
+bool is_prime_small[manb];
+
+void segment_seieve(ll a,ll b){
+    for(int i=0;(ll)i*i<b;i++)is_prime_small[i]=true;
+    for(int i=0;i<b-a;i++)is_prime[i]=true;
+    
+    for(int i=2;(ll)i*i<b;i++){//筛选[0,根号b]之间的素数
+        if(is_prime_small[i]){
+            for(int j=i*i;(ll)j*j<b;j+=i)is_prime_small[j]=false;//筛区间[2,sqrt(b))
+            for(int j=max(2LL,(a+i-1)/i)*i;j<b;j+=i)is_prime[j-a]=false;//筛[a,b),(a+i-1)/i为区间第一个i的倍数是i的多少倍，2LL为long long 2
+        }
+    }
+}
+```
+
+注意：
+
+1. ```a%i!=0时，a/i*i<a，这时加上(i-1)时，(a+i-1)/i*i>i，那么(a+i-1)/i就是区间第一个i的倍数是i的多少倍了```
+
+   ```a%i==0时，加上(i-1)不影响其除i，即a/i==(a+i-1)/i，(a+i-1)/i也依旧是区间第一个i的倍数是i的多少倍，即a/i倍```
+
+​		(a+i-1)/i可能小于2，j的初始化应从max(2LL,(a+i-1)/i)开始，即只是从2*i开始
+
+## 哥德巴赫猜想
+
+### 内容
+
++ 任意一个数$x(x>5)$可以分解为三个质数之和
++ 任意一个偶数$x(x>2)$可以分解为两个质数之和
++ 任何一个大于7的奇数可以分解为三个奇质数之和
+
+### 拓展
+
++ 对于一个大于2偶数，可以写成两个奇质数之和
++ 对于一个奇数x
+  + 本身为质数，可拆成1个质数{x}
+  + 若x-2为质数，可以拆成2个质数{2,x-2}
+  + 拆成一个质数与一个偶数，可以形成3个质数
+
+### 例题
+
+[Problem - 735D - Codeforces](https://codeforces.com/problemset/problem/735/D)
+
+[H-Until the Blue Moon Rises_2023牛客暑期多校训练营3 (nowcoder.com)](https://ac.nowcoder.com/acm/contest/57357/H)

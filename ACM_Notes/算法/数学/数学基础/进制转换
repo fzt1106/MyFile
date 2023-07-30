@@ -1,0 +1,89 @@
+# 进制转换
+
+## 普通进制转换
+
+1. 十进制转换为n进制
+   + 整数部分转换：不断除n，反向取余数，直到商为0
+   + 小数部分转换：小数部分不断乘n，正向取整数，直到到达指定精度
+2. n进制转换为十进制
+   + 整数部分转换：$\sum a_i*n^{i}，i从0开始地址$
+   + 小数部分转换：$\sum a_{i}n^{i}，i从-1开始递减$
+
+3. 二进制转换为八进制、十六进制：
+   + 二进制=>八进制：3位合1位
+   + 二进制=>十六进制：4位合1位
+4. 八进制、十六进制转换为二进制：
+   + 八进制=>二进制：1位分4位
+   + 十六进制=>二进制：1位分4位
+5. 八进制<=>十六进制：以二进制或者十进制进行过渡
+
+#### 十进制转换为x进制
+
+```c++
+//十进制转换为x进制，注意改变一下符号(如十六进制中10为A)
+vector<int> ten_to_x(int ten,int x){
+    vector<int>v;
+    while(ten){//直到商为0为止
+        v.push_back(ten%x);//取余（注意转换符号）
+        ten/=x;//除x
+    }
+    reverse(v.begin(),v.end());
+    return v;
+}
+```
+
+若转换为2进制，可以用bitset，若需字符串形式则使用`to_string()`函数
+
+## 高精度进制转换
+
+[模板题POJ1220:NUMBER BASE CONVERSION](http://poj.org/problem?id=1220)
+
+oldBase进制转化为newBase进制：**按位进行转换**
+
+$下一位的被除数=上一次的余数*oldBase+当前位的数$
+
+$商=被除数/newBase$ 用商代替当前位，作为下一轮的被除数
+
+$余数=被除数/newBase$
+
+直到到达最低位，最后得到的余数即位newBase进制的一位
+
+商作为下一轮的被除数
+
+<img src="https://fzttypora.oss-cn-beijing.aliyuncs.com/typora_images/%E8%BF%9B%E5%88%B6%E8%BD%AC%E6%8D%A2%E5%9B%BE%E7%A4%BA.png" alt="image-20230513090156881" style="zoom:33%;" />
+
+```c++
+//oldBase进制数s转换成newBase进制数
+char s[10000];
+int oldBase,newBase;
+vector<char>answer;//存储newBase进制数
+int dived[100000];//被除数
+char int_to_char[100]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";//数字转换为字符
+map<char,int>char_to_int;//字符转换为数字
+
+//将数s的每位转换成整型，并且进行 数字<->字符转换
+void init(){
+    for(int i=0;i<62;i++)char_to_int[int_to_char[i]]=i;
+    for(int i=0;i<strlen(s);i++)dived[i]=char_to_int[s[i]];
+}
+
+void change(){
+    int len=strlen(s);
+    for(int i=0;i<len/*当被除数为0时结束*/;){
+        int remain=0/*余数，初始为0*/,j=i/*被除数的最高位为j*/;
+        while(j<len){
+            remain=remain*oldBase+dived[j];//上位的余数*旧进制+当前位
+            dived[j++]=remain/newBase;//商重新存储，作为下一轮的被除数
+            remain%=newBase;//取余
+        }
+        answer.push_back(int_to_char[remain]);//本轮最后得到的余数即为新进制中的一位
+        while(dived[i]==0)i++;//去除前导0
+    }
+    reverse(answer.begin(),answer.end());//逆序
+    cout<<newBase<<' ';
+    for(int i=0;i<answer.size();i++)cout<<answer[i];
+    cout<<endl;
+    // answer.clar();
+}
+```
+

@@ -1,0 +1,38 @@
+# 线性同余方程
+
+## 定义
+
+线性同余方程：$ax\equiv b(\mod n)$ ，其中a、b、n为给定整数，x为未知数，需从区间[0,n-1]中求解x，当解不唯一时需要求出全部解
+
+## 求解
+
+### 扩展欧几里得算法求解
+
+$ax \equiv b(\mod n) \Leftrightarrow (ax-b)\%n=0 \Leftrightarrow ax+ny=b$ <!--y无实际意义-->
+
+**问题转化为扩展欧几里得算法扩展2**
+
+```c++
+int Exgcd(int a,int b,int &x,int &y){
+    if(b==0){
+        x=1;
+        y=0;
+        return a;
+    }
+    int d=Exgcd(b,a%b,x,y);
+    int temp=x;// temp=x2
+    x=y;// x1=y2
+    y= temp-(a/b)*y;// y1=x2-(a/b)*y2
+    return d;
+}
+
+int LiEu(int a,int b,int n){
+    int x,y;
+    int d=Exgcd(a,n,x,y);
+    if(b%d!=0)return 0;//无可行解
+    x=(x*b)/d;
+    x=(x%(n/d)+n/d)%(n/d);//最小可行解
+    return x;
+}
+```
+

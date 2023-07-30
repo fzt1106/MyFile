@@ -1,0 +1,51 @@
+# map
+
+## 使用技巧扩展
+
+### 使用`ma[x]`或`!ma[x]`时意外插入
+
+在使用如`if(!ma[x])`等数组形式的操作时，会将x插入到map容器中
+
+==总结：在使用map判断一个元素是否在其中，使用`ma.find(x)!=ma.end()`语句进行判断==
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+
+map<int,int>m;
+
+int main(){
+    if(m.find(1)!=m.end())cout<<"yes"<<endl;
+    else cout<<"no"<<endl;
+    cout<<"当前大小:"<<m.size()<<endl<<endl;
+
+    if(m[1])cout<<"yes"<<endl;//执行完该语句会插入'a'
+    else cout<<"no"<<endl;
+    cout<<endl;
+
+    //以下语句可以证明插入了'a'
+    if(m.find(1)!=m.end())cout<<"yes"<<endl;
+    else cout<<"no"<<endl;
+    cout<<"之后大小:"<<m.size()<<endl;
+}
+
+//可以看到在使用if(m[1])时，1会被存储在容器中
+/*
+no
+当前大小:0
+
+no
+
+yes
+之后大小:1
+*/
+```
+
+### map实现离散化
+
+对于**数据范围较大**、**数据数量较少**、**数据分散**的情况，使用普通的数组无法开到那么大，这时可以使用**map实现离散化操作**
+
+[例题：Gallivanting Merchant](https://codeforces.com/group/Aokqa6Haao/contest/425631/problem/G)
+
+
+

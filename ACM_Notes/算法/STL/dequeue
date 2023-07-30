@@ -1,0 +1,29 @@
+# dequeue
+
+## dequeue介绍
+
+双端队列，与普通queue不同的是dequeue在两端都可以进行插入与删除，与相当于双端vector
+
+## 使用
+
+1. 头文件：`#include<deque>`
+2. 声明容器：`deque<type>dq`
+3. 成员函数：
+   + 插入
+     + `push_back(x)` 在尾部插入x
+     + `push_front(x)` 在头部插入x
+     + `push_front(pos,x)` 在指定位置插入x
+   + 删除
+     + `pop_back()` 删除尾部元素
+     + `pop_front()` 删除头部元素
+     + `pop_erase(pos)` 删除指定位置元素
+     + `pop_erase(l,r)` 删除区间[l,r)元素
+   + 查询
+     + `back()` 返回尾部元素
+     + `front()` 返回头部元素
+   + 其他
+     + `begin()`
+     + `end()`
+     + `size()`
+     + `empty()`
+     + `clear()`

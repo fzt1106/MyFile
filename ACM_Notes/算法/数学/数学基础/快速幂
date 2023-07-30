@@ -1,0 +1,55 @@
+## 快速幂运算
+
+### 算法思想
+
+指数n非常大时，循环次数也会很大，但每一步把==指数减半，底数做平方==，一步这样的操作把**指数n减半**，使得**循环次数减半**，但最后结果不会有影响
+
+### 规律
+
+最终结果就是变化过程中==所有当指数为奇数时的底数的乘积==
+
+### 模板
+
+求A^B最后三位表示的整数（运用了模运算）
+
+```c++
+long long fastPower(long long base,long long power){
+	long long result=1;
+    base%=mod;//防止最开始base*base时溢出
+	while(power>0){
+		if(power%2==0){//指数为偶数时 
+			power/=2;//指数减半 
+			base=base*base%1000;//底数平方,并应用指数模运算 
+		}
+		else{//指数为奇数时 
+			power--;//指数减一变为偶数 
+			result=result*base%1000;//记录下指数为奇数时的底数,并应用乘法模运算 
+			power/=2;//之后和指数为偶数时的操作一样 
+			base=base*base%1000;
+		}
+	}
+	return result;
+}
+```
+
+### 优化
+
+利用==位运算==，作用和上面一样，时间得到大量优化
+
+```c++
+long long fastPower(long long base,long long power){
+	long long result=1;
+    base%=mod;//防止最开始base*base时溢出
+	while(power>0){
+		if(power&1){//指数为奇数时特判，位运算判断奇数
+			result=result*base%1000;//记录下指数为奇数时的底数,并应用乘法模运算 
+		}
+		power>>=1;//指数减半，位运算来除2
+		base=base*base%1000;//底数平方,并应用指数模运算 
+	}
+	return result;
+}
+```
+
+
+

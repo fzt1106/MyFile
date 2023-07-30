@@ -1,0 +1,110 @@
+# 欧几里得算法
+
+## 普通欧几里得算法
+
+### 辗转相除法$O(\log n)$
+
+求a,b的最大公约数（最小共倍数）：$\gcd(a,b)=\gcd(b,a\%b)$当循环到$\gcd(a,0)$，最大共约数即为a
+
+```c++
+int gcd(int a,int b){
+    return b==0?a:gcd(b,a%b);
+}
+```
+
+### 补充
+
+1. $a*b=gcd(a,b)*lcm(a,b)$   <!--gcd表示最大公约数，lcm表示最小公倍数-->
+2. 若$gcd(a,b)=1$，则a、b互质
+3. 求多个数的最大公约数：先取序列中两个数a,b，求得$gcd(a,b)$并加入序列中，重复此操作最后即为所求
+4. 求多个数的最小公倍数：先取序列中两个数a,b，求得$gcd(a,b)$，并将$a*b/gcd(a,b)$加入序列中，重复此操作最后即为所求
+
+## 扩展欧几里得算法：
+
+### 求$ax+by=gcd(a,b)$的解
+
+#### 思路
+
+模拟[斐蜀定理](E:\Typora文件\训练记录\2023大二寒假训练\算法\数学\裴蜀定理（贝祖定理）)的证明过程
+
+> 当计算$\gcd(a,b)$时，有$a*x_1+b*y_2=gcd$
+>
+> 而在下一步计算$\gcd(b,a\%b)$时，又有$b*x_2+(a\%b)*y_2=gcd$成立
+>
+> 因此$a*x_1+b*y_2=b*x_2+(a\%b)*y_2$成立
+>
+> 又因为$a\%b=a-(a/b)*b$
+>
+> 因此整理得$a*x_1+b*y_1=a*y_2+b*(x_2-(a/b)*y_2)$
+>
+> 
+>
+> 所以可以得到：
+>
+> ==$x_1=y_2$==
+>
+> ==$y_1=x_2-(a/b)*y_2$==
+
+#### 代码
+
+```c++
+int Exgcd(int a,int b,int &x,int &y){
+    if(b==0){
+        x=1;
+        y=0;
+        return a;
+    }
+    int d=Exgcd(b,a%b,x,y);
+    int temp=x;// temp=x2
+    x=y;// x1=y2
+    y= temp-(a/b)*y;// y1=x2-(a/b)*y2
+    return d;
+}
+```
+
+返回$gcd(a,b)$，并且x，y即为一组解
+
+#### 值域分析
+
++ 一组解：$x_0,y_0$=>全部解：$x'=x_0+b/gcd(a,b)*k,y'=y_0-a/gcd(a,b)*k$   即x、y的解分别以$b/gcd(a,b),a/gcd(a,b)$为周期
+
++ 最小非负整数解：$(x_0\%(b/gcd(a,b))+b/gcd(a,b))%(b/gcd(a,b))$  **注意$x_0$可能为负数的情况**
+
+  当$gcd(a,b)=1$时，最小非负整数解为：$(x_0\%b+b)%b$
+
++ 扩展欧几里得算法求出的解必有$|x|\leq b,|y|\leq a$：  **<font color=#FF0000 face="黑体">证明未明白</font>**
+
+  <img src="E:\typro图像\image-20230129012433522.png" alt="image-20230129012433522" style="zoom:50%;" />
+
+### 扩展2：求$ax+by=c$的解
+
+#### 思路
+
+若$c\%\gcd(a,b)==0$时，方程才有可行解：
+
++ 假设$ax+by=gcd(a,b)$的一组可行解为$x_0,y_0$
+
++ $x=(c*x_0)/ \gcd(a,b)$
++ $y=(c*y_0)/ \gcd(a,b)$
++ 最小非负整数解：$x=(x\%(b/gcd(a,b))+b/gcd(a,b))\%(b/gcd(a,b))$
+
+### 扩展3：求同余式$ax\equiv b(\mod n)$的解
+
+#### 思路
+
+$ax \equiv b(\mod n) \Leftrightarrow (ax-b)\%n=0 \Leftrightarrow ax+ny=b$ <!--y无实际意义-->
+
+**问题转化为扩展2**
+
+### 扩展4：逆元的求解
+
+#### 思路
+
+$a模n的逆元 \Leftrightarrow ax=1(\mod n) \Leftrightarrow ax+ny=1$
+
+**问题转换为扩展3**
+
+当$gcd(a,n)==1$时，方程才有可行解
+
+最小非负整数解为：$(x\%n+n)\%n$
+
